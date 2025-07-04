@@ -29,7 +29,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__amountShouldBeMoreThanZero();
     error DSCEngine__tokenNotSupported();
     error DSCEngine__NumberOfTokenAddressShouldMatchNumberOfPriceFeedAddresses();
-    error DSCEngine__transferFailed();
+    error DSCEngine__TransferFailed();
     error DSCEngine__BreaksHealthFactor(uint256);
     error DSCEngine__MintFailed();
 
@@ -47,6 +47,7 @@ contract DSCEngine is ReentrancyGuard {
     DecentralizedStableCoin private immutable i_dsc;
 
     event CollateralDeposited(address indexed user, address indexed tokenAddress, uint256 amountDeposited);
+    event CollateralRedeemed(address indexed user, address indexed token, uint256 indexed amount);
 
     modifier isAllowedToken(address token) {
         if (s_tokenAddressToPriceFeed[token] == address(0)) {
@@ -74,7 +75,15 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
 
-    function depositCollateralAndMintDSC() external {}
+    // This function will allow depositing collateral and miniting DSC in one go
+    function depositCollateralAndMintDSC(
+        address tokenCollateralAddress,
+        uint256 amountCollateral,
+        uint256 amountDscToMint
+    ) external {
+        depositCollateral(tokenCollateralAddress, amountCollateral);
+        mintDSC(amountDscToMint);
+    }
 
     /**
      * follows CEI Pattern
@@ -82,7 +91,7 @@ contract DSCEngine is ReentrancyGuard {
      * @param amountCollateral The amount of collateral to deposit
      */
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        external
+        public
         moreThanZero(amountCollateral)
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
@@ -91,22 +100,47 @@ contract DSCEngine is ReentrancyGuard {
         emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
         bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
         if (!success) {
-            revert DSCEngine__transferFailed();
+            revert DSCEngine__TransferFailed();
         }
     }
 
-    function redeemCollateralForDSC() external {}
+    function redeemCollateralForDSC(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountDscToBurn)
+        external
+    {
+        redeemCollateral(tokenCollateralAddress, amountCollateral);
+        burnDSC(amountDscToBurn);
+    }
 
-    function redeemCollateral() external {}
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+        public
+        moreThanZero(amountCollateral)
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+        if (!success) {
+            revert DSCEngine__TransferFailed();
+        }
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
 
-    function burnDSC() external {}
+    function burnDSC(uint256 amount) public moreThanZero(amount) {
+        s_DSCMintedToUser[msg.sender] -= amount;
+        bool success = i_dsc.transferFrom(msg.sender, address(this), amount);
+        if (!success) {
+            revert DSCEngine__TransferFailed();
+        }
+        i_dsc.burn(amount);
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
 
     /**
      * Follows CEI pattern
      * @param amountDscToMint The amount of decentralised stablecoin to mint
      * @notice user must have more collteral than the minimum threshold
      */
-    function mintDSC(uint256 amountDscToMint) external moreThanZero(amountDscToMint) nonReentrant {
+    function mintDSC(uint256 amountDscToMint) public moreThanZero(amountDscToMint) nonReentrant {
         s_DSCMintedToUser[msg.sender] += amountDscToMint;
         _revertIfHealthFactorIsBroken(msg.sender);
         bool minted = i_dsc.mint(msg.sender, amountDscToMint);
