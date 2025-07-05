@@ -189,7 +189,9 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external view {}
+    function getHealthFactor() external view returns (uint256) {
+        return _healthFactor(msg.sender);
+    }
 
     function _getAccountInformation(address user)
         private
@@ -261,5 +263,13 @@ contract DSCEngine is ReentrancyGuard {
         // see here by clicking more details, https://docs.chain.link/data-feeds/price-feeds/addresses?page=1&testnetPage=1
         (, int256 value,,,) = priceFeed.latestRoundData();
         return ((uint256(value) * ADDITIONAL_FEED_PRECISION * amount) / PRECISION);
+    }
+
+    function getAccountInformation(address user)
+        external
+        view
+        returns (uint256 totalDscMinted, uint256 totalCollateralInUsd)
+    {
+        (totalDscMinted, totalCollateralInUsd) = _getAccountInformation(user);
     }
 }
