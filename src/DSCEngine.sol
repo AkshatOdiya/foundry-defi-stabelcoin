@@ -5,6 +5,7 @@ import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {OracleLib} from "./libraries/OracleLib.sol";
 /**
  * @title DSCEngine
  * @author Akshat odiya
@@ -36,6 +37,8 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__MintFailed();
     error DSCEngine__HealthFactorIsOk();
     error DSCEngine__HealthFactorNotImproved();
+
+    using OracleLib for AggregatorV3Interface;
 
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
@@ -241,7 +244,7 @@ contract DSCEngine is ReentrancyGuard {
 
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_tokenAddressToPriceFeed[token]);
-        (, int256 value,,,) = priceFeed.latestRoundData();
+        (, int256 value,,,) = priceFeed.stalePriceCheck();
         return (usdAmountInWei * PRECISION) / (uint256(value) * ADDITIONAL_FEED_PRECISION);
     }
 
@@ -284,5 +287,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function getHealthFactor() external view returns (uint256) {
         return _healthFactor(msg.sender);
+    }
+
+    function getCollateralTokenPriceFeed(address token) external view returns (address) {
+        return s_tokenAddressToPriceFeed[token];
     }
 }
