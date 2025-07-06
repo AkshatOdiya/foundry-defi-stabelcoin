@@ -205,6 +205,9 @@ contract DSCEngine is ReentrancyGuard {
     // Returns how close to liquidation a user is, if a user goes below 1, then they can get liquidated
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 totalCollateralInUsd) = _getAccountInformation(user);
+        if (totalDscMinted == 0) {
+            return type(uint256).max; // No debt, so health factor is "infinite"
+        }
         uint256 collateralAdjustedForThreshold = (totalCollateralInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return ((collateralAdjustedForThreshold * PRECISION) / totalDscMinted);
     }
@@ -271,5 +274,13 @@ contract DSCEngine is ReentrancyGuard {
         returns (uint256 totalDscMinted, uint256 totalCollateralInUsd)
     {
         (totalDscMinted, totalCollateralInUsd) = _getAccountInformation(user);
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
+        return s_collateralDeposited[user][token];
     }
 }
