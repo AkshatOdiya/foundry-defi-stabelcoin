@@ -8,7 +8,7 @@
 pragma solidity ^0.8.19;
 
 import {StdInvariant} from "forge-std/StdInvariant.sol";
-import {Test, console} from "forge-std/Test.sol";
+import {Test, console2} from "forge-std/Test.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
@@ -35,13 +35,22 @@ contract InvariantsTest is StdInvariant, Test {
         targetContract(address(handler));
     }
 
-    function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
+    function invariant_protocolMustHaveMoreValueThanTotalSupply() external view {
         uint256 totalSupply = dsc.totalSupply();
         uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dsce));
         uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
 
         uint256 wethValue = dsce.getUsdValue(weth, totalWethDeposited);
         uint256 wbtcValue = dsce.getUsdValue(wbtc, totalWbtcDeposited);
+
+        console2.log("weth value: ", wethValue);
+        console2.log("wbtc value: ", wbtcValue);
+        console2.log("total supply: ", totalSupply);
+        console2.log("Times mint called: ", handler.s_timeMintHasBeenCalled());
         assert(wethValue + wbtcValue >= totalSupply);
+    }
+
+    function invariant_getterFunctionsShouldNotRevertNoMatterWhat() public view {
+        dsce.getCollateralTokens();
     }
 }

@@ -25,6 +25,8 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
  * @notice This contract is based on the MakerDAO DSS system
  */
 
+// You can use commad `forge inspet DSCEngine methods` to get all the functions that that contract have with their function selectors
+
 contract DSCEngine is ReentrancyGuard {
     error DSCEngine__amountShouldBeMoreThanZero();
     error DSCEngine__tokenNotSupported();
@@ -189,10 +191,6 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external view returns (uint256) {
-        return _healthFactor(msg.sender);
-    }
-
     function _getAccountInformation(address user)
         private
         view
@@ -282,5 +280,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
         return s_collateralDeposited[user][token];
+    }
+
+    function getHealthFactor() external view returns (uint256) {
+        return _healthFactor(msg.sender);
     }
 }
