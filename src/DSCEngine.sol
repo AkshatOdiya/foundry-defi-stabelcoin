@@ -163,6 +163,13 @@ contract DSCEngine is ReentrancyGuard {
      * anyone.
      * For example, if the price of the collateral plummeted before anyone could be liquidated.
      */
+
+    /*
+     * Users will deposit collateral greater in value than the DSC they mint. 
+     * If their collateral value falls such that their position becomes under-collateralized, another user can liquidate the position,
+     * by paying back/burning the DSC in exchange for the positions collateral. 
+     * This will net the liquidator the difference in the DSC value and the collateral value in profit as incentive for securing the protocol.
+    */
     function liquidate(address tokenCollateralAddress, address user, uint256 debtToCover)
         external
         moreThanZero(debtToCover)
@@ -260,6 +267,10 @@ contract DSCEngine is ReentrancyGuard {
         return totalValueInUsd;
     }
 
+    /*
+     * The precision of both these values is going to be different, the amount passed to this function is expected to have 18 decimal places where as our price has only 8. 
+     * To resolve this we'll need to multiple our price by 1e10. Once our precision matches, we can multiple this by our amount, then divide by 1e18 to return a reasonably formatted number for USD units.
+     */
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_tokenAddressToPriceFeed[token]);
         // The `value` Chainlink returns will have 8 decimal places i.e. value*1e8 and amount will be in wei i.e. amount*1e18

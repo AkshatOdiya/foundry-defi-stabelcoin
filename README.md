@@ -1,4 +1,22 @@
-# Project
+# Project: Stablecoin Protocol
+
+stablecoin is going to be:
+
+1. Relative Stability: Anchored or Pegged to the US Dollar
+
+   a. Chainlink Pricefeed
+
+   b. Function to convert ETH & BTC to USD
+
+2. Stability Mechanism (Minting/Burning): Algorithmicly Decentralized
+
+   a. Users may only mint the stablecoin with enough collateral
+
+3. Collateral: Exogenous (Crypto)
+
+   a. wETH
+
+   b. wBTC
 
 The Decentralized Stablecoin protocol has 2 contracts at it's heart.
 
@@ -23,3 +41,5 @@ The real meat of this protocol can be found in DSCEngine.sol. DecentralizeStable
 
 In addition to all the source contracts, this protocol comes with a full test suite including `unit`, `fuzz` and `invariant` tests.
 
+## References:
+1. Concept of [healt factor](https://aave.com/help/borrowing/liquidations) is taken from aave protocol.
