@@ -1,66 +1,25 @@
-## Foundry
+# Project
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+The Decentralized Stablecoin protocol has 2 contracts at it's heart.
 
-Foundry consists of:
+* **DecentralizedStableCoin.sol**
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+* **DSCEngine.sol**
 
-## Documentation
+DecentralizedStableCoin.sol is effectively a fairly simple ERC20 with a few more advanced features imported such as [ERC20Burnable](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/ERC20Burnable.sol) and OpenZeppelin's [Ownable](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol) libraries.  
 
-https://book.getfoundry.sh/
+The real meat of this protocol can be found in DSCEngine.sol. DecentralizeStableCoin.sol is ultimately going to be controlled by this DSCEngine and most of the protocol's complex functionality is included within including functions such as:
 
-## Usage
+* **depositCollateralAndMintDsc**
 
-### Build
+* **redeemCollateral**
 
-```shell
-$ forge build
-```
+* **burn**
 
-### Test
+* **liquidate**  
 
-```shell
-$ forge test
-```
 
-### Format
+... and much more.  
 
-```shell
-$ forge fmt
-```
+In addition to all the source contracts, this protocol comes with a full test suite including `unit`, `fuzz` and `invariant` tests.
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
