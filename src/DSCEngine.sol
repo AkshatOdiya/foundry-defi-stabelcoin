@@ -121,6 +121,13 @@ contract DSCEngine is ReentrancyGuard {
         burnDSC(amountDscToBurn);
     }
 
+    /*
+     * Why we need to declare two redeemCollateral(`redeemCollateral` and `_redeemCollateral`)
+     * The `redeemCollateral` function can be called by anyone
+     * And `_redeemCollateral` can only be called as private function, it has Restricted call.
+     * `_redeemCollateral` can redeem from anyone to anyone(caller)
+     * Thats why it is dangerous to have a direct access to _redeemCollateral
+     */
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         moreThanZero(amountCollateral)
@@ -129,6 +136,13 @@ contract DSCEngine is ReentrancyGuard {
         _redeemCollateral(msg.sender, msg.sender, tokenCollateralAddress, amountCollateral);
     }
 
+    /*
+     * Why we need to declare two burnDSC(`burnDSC` and `_burnDSC`)
+     * The `burnDSC` function can be called by anyone
+     * And `burnDSC` can only be called as private function, it has Restricted call.
+     * `_burnDSC` can burn from anyone to anyone(caller)
+     * Thats why it is dangerous to have a direct access to _burnDSC
+     */
     function burnDSC(uint256 amount) public moreThanZero(amount) {
         _burnDSC(msg.sender, msg.sender, amount);
         _revertIfHealthFactorIsBroken(msg.sender);
@@ -186,14 +200,22 @@ contract DSCEngine is ReentrancyGuard {
         // debtToCover = $100
         // $100 of DSC = ??? ETH
         // 0.05 ETH Here
+        // This is to calculate how much ETH will corresponds to how much DSC(we know DSC is pegged to US dollar i.e, 1 DSC = 1 USD)
         uint256 tokenAmountFromDebtToBeCovered = getTokenAmountFromUsd(tokenCollateralAddress, debtToCover);
         // And give them a 10% bonus
         // So we are giving the liquidator $110 of WETH for 100 Dsc
         uint256 bonusCollateral = (tokenAmountFromDebtToBeCovered * LIQUIDATOR_BONUS) / LIQUIDATION_PRECISION;
 
         uint256 totalCollateralToRedeem = tokenAmountFromDebtToBeCovered + bonusCollateral;
+
+        // Give the collateral to liquidator(msg.sender) taking from who is getting liquidated(user)
         _redeemCollateral(user, msg.sender, tokenCollateralAddress, totalCollateralToRedeem);
+
+        // Decrease the dsc of msg.sender(liquidator) to cover the dsc of who is getting liquidated(user)
+        // So that liquidator get the collateral of user and maintining the rules of protocol of over-collaterlisation
+        // And burn the dsc of user
         _burnDSC(user, msg.sender, debtToCover);
+
         uint256 endingUserHealthFactor = _healthFactor(user);
         if (endingUserHealthFactor <= startingUserHealthFactor) {
             revert DSCEngine__HealthFactorNotImproved();
@@ -249,8 +271,12 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc.burn(amount);
     }
 
-    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_tokenAddressToPriceFeed[token]);
+    function getTokenAmountFromUsd(address tokenCollateralAddress, uint256 usdAmountInWei)
+        public
+        view
+        returns (uint256)
+    {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_tokenAddressToPriceFeed[tokenCollateralAddress]);
         (, int256 value,,,) = priceFeed.stalePriceCheck();
         return (usdAmountInWei * PRECISION) / (uint256(value) * ADDITIONAL_FEED_PRECISION);
     }
