@@ -28,6 +28,7 @@ contract Handler is Test {
     }
 
     function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
+        // We need to use bound, so that we dont have unnecessary reverts
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
 
         // Ensuring onyl valid collateral is deposited
@@ -62,13 +63,25 @@ contract Handler is Test {
     }
 
     function redeemCollateralFromSeed(uint256 collateralSeed, uint256 amountCollateral) public {
+        // Ensuring onyl valid collateral is deposited
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
         uint256 maxCollateralToRedeem = dsce.getCollateralBalanceOfUser(address(collateral), msg.sender);
+
+        // We need to use bound, so that we dont have unnecessary reverts
         amountCollateral = bound(amountCollateral, 0, maxCollateralToRedeem);
+
+        /*
+         * Instead of using if statement
+         if(amountCollateral==0){
+         return;
+         }
+         * We can use vm.assume like this
+         */
         vm.assume(amountCollateral > 0);
 
         dsce.redeemCollateral(address(collateral), amountCollateral);
     }
+
     // Some update will be required in DSCEngine if the price of the collateral for too low
     // so leave this for now
     // function updateCollateralPrice(uint96 newPrice) public {
