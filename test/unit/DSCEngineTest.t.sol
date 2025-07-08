@@ -19,6 +19,7 @@ contract DSCEngineTest is Test {
     address btcUsdPriceFeed;
     address wbtc;
 
+    uint256 public constant LOCAL_CHAIN_ID = 31337;
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
     address genius = makeAddr("Genius");
@@ -31,7 +32,14 @@ contract DSCEngineTest is Test {
         ERC20Mock(wbtc).mint(genius, STARTING_ERC20_BALANCE);
     }
 
-    function testGetUsdValue() public view {
+    modifier skipFork() {
+        if (block.chainid != LOCAL_CHAIN_ID) {
+            return;
+        }
+        _;
+    }
+
+    function testGetUsdValue() public view skipFork {
         uint256 ethamount = 15e18;
         uint256 expectedUsd = 15000e18;
         uint256 actualUsd = dsce.getUsdValue(weth, ethamount);
