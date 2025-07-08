@@ -152,6 +152,8 @@ It can be seen that first function being called by the fuzzer is `depositCollate
 
 ### [HandlerInvariantTest.t.sol](https://github.com/AkshatOdiya/foundry-defi-stabelcoin/blob/main/test/fuzz/HandlerInvariantTests.t.sol) and [Handler.t.sol](https://github.com/AkshatOdiya/foundry-defi-stabelcoin/blob/main/test/fuzz/Handler.t.sol)  
 
+Instead of having target as DSCEngine, move target contract to `Handler.t.sol`. In this contract we can structure our function calls so that fuzzing is not unnecessarrily random. 
+Like it is irrelevant to call redeemCollateral before depositing collateral.
 
 ---
 

@@ -27,10 +27,10 @@ contract Handler is Test {
         ethUsdPriceFeed = MockV3Aggregator(dsce.getCollateralTokenPriceFeed(address(weth)));
     }
 
-    // redeem collateral <-
-
     function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
+
+        // Ensuring onyl valid collateral is deposited
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
 
         // mint and approve!
