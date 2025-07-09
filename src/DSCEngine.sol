@@ -302,7 +302,7 @@ contract DSCEngine is ReentrancyGuard {
         // The `value` Chainlink returns will have 8 decimal places i.e. value*1e8 and amount will be in wei i.e. amount*1e18
         // se we need to compensate the precision of both terms by muliplying value with ADDITIONAL_FEED_PRECISION
         // see here by clicking more details, https://docs.chain.link/data-feeds/price-feeds/addresses?page=1&testnetPage=1
-        (, int256 value,,,) = priceFeed.latestRoundData();
+        (, int256 value,,,) = priceFeed.stalePriceCheck();
         return ((uint256(value) * ADDITIONAL_FEED_PRECISION * amount) / PRECISION);
     }
 
