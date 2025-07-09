@@ -44,7 +44,13 @@ contract Handler is Test {
         s_usersWhoHaveDepositedCollateral.push(msg.sender);
     }
 
+    /*
+     * We also need to consider, who is minting our DSC with respect to who has deposited collateral
+     * We can account for this in our test by ensuring that the user doesn't attempt to mint more than the collateral they have deposited, 
+     * otherwise we'll return out of the function. We'll determine the user's amount to mint by calling our getAccountInformation function.
+     */
     function mintDsc(uint256 amountDscToMint, uint256 addressSeed) public {
+        // Only the user who has deposited collateral can call mintDSC. otherwise the calls will be unnecessary.
         vm.assume(s_usersWhoHaveDepositedCollateral.length > 0);
 
         address sender = s_usersWhoHaveDepositedCollateral[addressSeed % s_usersWhoHaveDepositedCollateral.length];
