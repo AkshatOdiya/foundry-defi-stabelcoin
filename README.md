@@ -130,7 +130,7 @@ forge test --mt invariant_protocolMustHaveMoreValueThanTotalSupply -vvvv
 ```
 Let us increase the to `1000 runs`
 
-![Fuzzing1](image.png)    
+![Fuzzing1](README.MD_images/image.png)    
 
 In the image above, notice how many calls were made vs how many times a function call reverted. Every single call is reverting! This in essence means that our test wasn't able to do anything. This is not a very reassuring test.
 
@@ -144,11 +144,11 @@ Without any guidance, Foundry is going to throw truly random data at the functio
 
 Let's set this option to `true` and run test once more.  
 
-![Fuzzing2](image-1.png)  
+![Fuzzing2](README.MD_images/image-1.png)  
 
 It can be seen that first function being called by the fuzzer is `depositCollateral` and its passing a random tokenAddress argument causing revert immediately.
 
-![Fuzzing3](image-2.png) 
+![Fuzzing3](README.MD_images/image-2.png) 
 
 ### [HandlerInvariantTest.t.sol](https://github.com/AkshatOdiya/foundry-defi-stabelcoin/blob/main/test/fuzz/HandlerInvariantTests.t.sol) and [Handler.t.sol](https://github.com/AkshatOdiya/foundry-defi-stabelcoin/blob/main/test/fuzz/Handler.t.sol)  
 
